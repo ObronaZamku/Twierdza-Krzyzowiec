@@ -28,17 +28,10 @@ public class WallBuilding : MonoBehaviour
     private GameObject wall;
 
     private bool buildingState;
-    private bool isExisting = false;
-
     private GamePhases phases;
-
-
-    private Vector3 tempPosition;
-    private Vector3 tempForward;
-
-
+    private Vector3 startTowerPosition;
+    private Vector3 startTowerForward;
     private SuppliesManager suppliesManager;
-
 
     // Start is called before the first frame update
     void Start()
@@ -60,173 +53,192 @@ public class WallBuilding : MonoBehaviour
 
     void WallPlacement()
     {
-        if (Input.GetMouseButtonDown(0) && !buildingState)
+        if (Input.GetMouseButtonDown(0))
         {
-            GameObject obj = EventSystem.current.currentSelectedGameObject;
-            if (obj != null)
-            {
-                if (obj.tag == "Button")
-                {
-                    return;
-                }
-            }
-            StartBuilding();
+            OnLeftMouseButtonDown();
         }
-        else if (Input.GetMouseButtonDown(0) && buildingState)
+        else if (Input.GetMouseButtonDown(1))
         {
-            EndBuilding();
-        }
-        else if (Input.GetMouseButtonDown(1) && buildingState)
-        {
-            if (wallStart.tag != "Tower")
-            {
-                Destroy(wallStart);
-            }
-            Destroy(wall);
-            Destroy(wallEnd);
-            buildingState = false;
+            OnRightMouseButtonDown();
         }
         else
         {
-            if (buildingState)
-            {
-                AdjustWall();
-            }
+            AdjustWall();
         }
+    }
+
+    void OnLeftMouseButtonDown()
+    {
+        if (buildingState)
+        {
+            EndBuilding();
+            return;
+        }
+
+        GameObject obj = EventSystem.current.currentSelectedGameObject;
+
+        if (obj == null || obj.CompareTag("Button"))
+        {
+            StartBuilding();
+        }
+    }
+
+    void OnRightMouseButtonDown()
+    {
+        if (!buildingState)
+        {
+            return;
+        }
+
+        if (!wallStart.CompareTag("Tower"))
+        {
+            Destroy(wallStart);
+        }
+
+        Destroy(wall);
+        Destroy(wallEnd);
+        buildingState = false;
     }
 
     void StartBuilding()
     {
         buildingState = true;
-        if (!IfStartTowerExists())
+
+        if (!IfTowerHit(ref wallStart))
         {
-            Vector3 temp = GetWorldPoint();
-            if (temp == Vector3.zero)
-            {
-                buildingState = false;
-                return;
-            }
-            wallStart = Instantiate(previewPrefab, GetWorldPoint(), Quaternion.identity) as GameObject;
+            Vector3 mousePosition = GetWorldPoint();
+            TryToCreateNewTower(mousePosition);
         }
-        wall = Instantiate(wallPreview, wallStart.transform.position, Quaternion.identity) as GameObject;
-        wallEnd = Instantiate(previewPrefab, wallStart.transform.position, Quaternion.identity) as GameObject;
-        tempPosition = wallStart.transform.position;
+
+        if (buildingState)
+        {
+            wall = Instantiate(wallPreview, wallStart.transform.position, Quaternion.identity) as GameObject;
+            wallEnd = Instantiate(previewPrefab, wallStart.transform.position, Quaternion.identity) as GameObject;
+            startTowerPosition = wallStart.transform.position;
+        }
     }
 
+    void TryToCreateNewTower(Vector3 mousePosition)
+    {
+        if (mousePosition == Vector3.zero)
+        {
+            buildingState = false;
+            return;
+        }
+
+        wallStart = Instantiate(previewPrefab, mousePosition, Quaternion.identity) as GameObject;
+    }
 
     void AdjustWall()
     {
-        tempForward = wallStart.transform.forward;
-        Vector3 temp = GetWorldPoint();
-        if (wallStart.transform.position.y != temp.y)
+        if (!buildingState)
         {
             return;
         }
-        if (temp != Vector3.zero)
-        {
-            distance = Vector3.Distance(tempPosition, temp);
-            wallStart.transform.LookAt(temp);
-            if (distance > maxDistance)
-            {
-                wall.transform.position = tempPosition + maxDistance / 2 * tempForward;
-                wallEnd.transform.position = tempPosition + maxDistance * tempForward;
-                wall.transform.rotation = wallStart.transform.rotation;
-                distance = maxDistance;
-                return;
-            }
-            wallEnd.transform.position = temp;
-            wallEnd.transform.LookAt(wallStart.transform.position);
-            wall.transform.position = tempPosition + distance / 2 * tempForward;
-            wall.transform.rotation = wallStart.transform.rotation;
-            wall.transform.localScale = new Vector3(wall.transform.localScale.x, wall.transform.localScale.y, distance);
 
+        startTowerForward = wallStart.transform.forward;
+        Vector3 mousePosition = GetWorldPoint();
+
+        if (mousePosition == Vector3.zero || wallStart.transform.position.y != mousePosition.y)
+        {
+            return;
         }
+
+        distance = Vector3.Distance(startTowerPosition, mousePosition);
+        wallStart.transform.LookAt(mousePosition);
+
+        if (distance > maxDistance)
+        {
+            wall.transform.position = startTowerPosition + maxDistance / 2 * startTowerForward;
+            wallEnd.transform.position = startTowerPosition + maxDistance * startTowerForward;
+            wall.transform.rotation = wallStart.transform.rotation;
+            distance = maxDistance;
+            return;
+        }
+
+        wallEnd.transform.position = mousePosition;
+        wallEnd.transform.LookAt(wallStart.transform.position);
+        wall.transform.position = startTowerPosition + distance / 2 * startTowerForward;
+        wall.transform.rotation = wallStart.transform.rotation;
+        wall.transform.localScale = new Vector3(wall.transform.localScale.x, wall.transform.localScale.y, distance);
     }
 
 
     void EndBuilding()
     {
         buildingState = false;
-        Transform startPreview = wallStart.transform;
+        Transform startPreviewTrans = wallStart.transform;
         Transform wallPreviewTrans = wall.transform;
-        Transform endPreview = wallEnd.transform;
-        if (wallStart.tag != "Tower")
+        Transform endPreviewTrans = wallEnd.transform;
+
+        if (!wallStart.CompareTag("Tower"))
         {
             Destroy(wallStart);
-            wallStart = Instantiate(towerPrefab, startPreview.position, Quaternion.identity) as GameObject;
+            wallStart = Instantiate(towerPrefab, startPreviewTrans.position, Quaternion.identity) as GameObject;
         }
+
         Destroy(wallEnd);
-        if (!IfEndTowerExists())
+
+        if (!IfTowerHit(ref wallEnd))
         {
-            wallEnd = Instantiate(towerPrefab, endPreview.position, Quaternion.identity) as GameObject;
+            wallEnd = Instantiate(towerPrefab, endPreviewTrans.position, Quaternion.identity) as GameObject;
         }
+
         Destroy(wall);
         wall = Instantiate(wallPrefab, wallPreviewTrans.position, wallPreviewTrans.rotation) as GameObject;
         wall.transform.localScale = wallPreviewTrans.localScale;
         suppliesManager.WallBuilt(distance);
-
     }
 
     Vector3 GetWorldPoint()
     {
         Ray ray = camera.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
-        if (Physics.Raycast(ray, out hit))
+
+        if (!Physics.Raycast(ray, out hit))
         {
-            if (hit.collider.tag == "Tower")
-            {
-                return hit.transform.position;
-            }
-            if (hit.collider.tag == "Wall")
-            {
-                return Vector3.zero;
-            }
-            if (hit.collider.tag == "Cannon" || hit.collider.tag == "Bowman" || hit.collider.tag == "Barrel")
-            {
-                GameObject tower = hit.collider.transform.parent.gameObject;
-                if (!tower)
-                {
-                    return Vector3.zero;
-                }
-                if (tower.tag == "Tower")
-                {
-                    return tower.transform.position;
-                }
-                return Vector3.zero;
-            }
-            if (hit.collider.tag == "Button")
-            {
-                return Vector3.zero;
-            }
-            return hit.point;
+            return Vector3.zero;
         }
+
+        switch (hit.collider.tag)
+        {
+            case "Tower":
+                return hit.transform.position;
+            case "Button":
+            case "Wall":
+                return Vector3.zero;
+            case "Cannon":
+            case "Bowman":
+            case "Barrel":
+                GameObject parentObject = hit.collider.transform.parent.gameObject;
+                return GetParentTowerPosition(parentObject);
+            default:
+                return hit.point;
+        }
+    }
+
+    Vector3 GetParentTowerPosition(GameObject parentObject)
+    {
+        if (parentObject && parentObject.tag == "Tower")
+        {
+            return parentObject.transform.position;
+        }
+
         return Vector3.zero;
     }
 
-    bool IfStartTowerExists()
+    bool IfTowerHit(ref GameObject tower)
     {
         Ray ray = camera.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
+
         if (Physics.Raycast(ray, out hit) && hit.collider.tag == "Tower")
         {
-            wallStart = hit.collider.gameObject;
+            tower = hit.collider.gameObject;
             return true;
         }
+
         return false;
     }
-
-    bool IfEndTowerExists()
-    {
-        Ray ray = camera.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
-        if (Physics.Raycast(ray, out hit) && hit.collider.tag == "Tower")
-        {
-            wallEnd = hit.collider.gameObject;
-            return true;
-        }
-        return false;
-    }
-
     #endregion
-
 }
