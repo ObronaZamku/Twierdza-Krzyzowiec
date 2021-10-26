@@ -77,10 +77,12 @@ public class WallBuilding : MonoBehaviour
 
         GameObject obj = EventSystem.current.currentSelectedGameObject;
 
-        if (obj == null || obj.CompareTag("Button"))
+        if (obj != null && obj.CompareTag("Button"))
         {
-            StartBuilding();
+            return;
         }
+
+        StartBuilding();
     }
 
     void OnRightMouseButtonDown()
