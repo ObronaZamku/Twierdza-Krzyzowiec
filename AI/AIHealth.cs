@@ -19,6 +19,25 @@ public class AIHealth : MonoBehaviour
         CheckKill();
     }
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Arrow"))
+        {
+            currentHP -= 10;
+            Destroy(other.gameObject);
+        }
+        else if (other.CompareTag("Bullet"))
+        {
+            currentHP -= 40;
+            Destroy(other.gameObject);
+        }
+        else if (other.CompareTag("Oil"))
+        {
+            currentHP -= 20;
+            Destroy(other.gameObject);
+        }
+    }
+
     void CheckKill()
     {
         if (currentHP <= 0)

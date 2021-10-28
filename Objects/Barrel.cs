@@ -34,18 +34,21 @@ public class Barrel : MonoBehaviour
 
         if (Physics.Raycast(ray, out hit))
         {
-            if (hit.collider.tag == "Barrel")
+            if (hit.collider.tag != "Barrel")
             {
-                Destroy(hit.collider.gameObject);
-                for (int i = 0; i < 50; i++)
-                {
-                    GameObject trans = Instantiate(oil, hit.point, Quaternion.identity) as GameObject;
-                    Rigidbody rigidbody = trans.GetComponent<Rigidbody>();
-                    rigidbody.velocity = new Vector3(Random.Range(-0.3f, 0.3f), 0, Random.Range(-50f, 50f));
-                    //rigidbody.AddForce(trans.transform.forward * Random.Range(-10, 10));
-                    Destroy(trans, 10f);
-                }
+                return;
             }
+
+            Destroy(hit.collider.gameObject);
+            for (int i = 0; i < 50; i++)
+            {
+                GameObject trans = Instantiate(oil, hit.point, Quaternion.identity) as GameObject;
+                Rigidbody rigidbody = trans.GetComponent<Rigidbody>();
+                rigidbody.velocity = new Vector3(Random.Range(-0.3f, 0.3f), 0, Random.Range(-50f, 50f));
+                //rigidbody.AddForce(trans.transform.forward * Random.Range(-10, 10));
+                Destroy(trans, 10f);
+            }
+
         }
     }
 
