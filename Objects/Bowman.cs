@@ -4,17 +4,29 @@ using UnityEngine;
 
 public class Bowman : Savable, Shootable
 {
+    [Header("Range")]
+    [SerializeField]
+    private float range;
 
-    public void Shoot(Vector3 targetPosition){
-        Debug.Log("SHOOTING");
-    }
+    [Header("Reload time")]
+    [SerializeField]
+    private float reloadTime;
+
+    [Header("Ammunition")]
+    [SerializeField]
+    private GameObject missilePrefab;
 
     public float GetRange(){
-        return 100f;
+        return range;
     }
 
     public float GetReload(){
-        return 2f;
+        return reloadTime;
+    }
+
+    public GameObject GetAmmunition()
+    {
+        return missilePrefab;
     }
     
     void Start()

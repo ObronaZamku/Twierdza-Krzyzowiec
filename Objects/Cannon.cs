@@ -4,29 +4,41 @@ using UnityEngine;
 
 public class Cannon : Savable, Shootable
 {
+    [Header("Range")]
+    [SerializeField]
+    private float range;
 
-    public void Shoot(Vector3 targetPosition){
-        Debug.Log("SHOOTING CANNON");
+    [Header("Reload time")]
+    [SerializeField]
+    private float reloadTime;
+
+    [Header("Ammunition")]
+    [SerializeField]
+    private GameObject missilePrefab;
+
+    public float GetRange()
+    {
+        return range;
     }
 
-    
-    public float GetRange(){
-        return 100f;
+    public float GetReload()
+    {
+        return reloadTime;
     }
 
-    public float GetReload(){
-        return 2f;
+    public GameObject GetAmmunition()
+    {
+        return missilePrefab;
     }
 
-    // Start is called before the first frame update
     void Start()
     {
-        
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 }
