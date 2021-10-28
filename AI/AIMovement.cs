@@ -26,9 +26,9 @@ public class AIMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (!siegeStarted)
+        if (!movementStarted)
         {
-            siegeStarted = true;
+            movementStarted = true;
             navMeshAgent.SetDestination(destination.position);
         }
         if (!navMeshAgent.hasPath)
