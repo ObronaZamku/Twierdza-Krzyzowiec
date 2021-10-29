@@ -6,14 +6,21 @@ using UnityEngine.EventSystems;
 public class WallBuilding : MonoBehaviour
 {
     [Header("Walls")]
-    [SerializeField]
-    private GameObject wallPrefab;
-    [SerializeField]
-    private GameObject towerPrefab;
+    public GameObject wallPrefab;
+    public GameObject towerPrefab;
     [SerializeField]
     private GameObject previewPrefab;
     [SerializeField]
     private GameObject wallPreview;
+
+
+    [SerializeField]
+    private Material forbiddenBuildMaterial;
+    private Material previewMaterial;
+
+    [SerializeField]
+    private Material startMaterial;
+
     [SerializeField]
     private float maxDistance;
 
@@ -28,16 +35,24 @@ public class WallBuilding : MonoBehaviour
     private GameObject wall;
 
     private bool buildingState;
+    private bool canBuild = true;
     private GamePhases phases;
     private Vector3 startTowerPosition;
     private Vector3 startTowerForward;
     private SuppliesManager suppliesManager;
+
+    private CastleHealth castleHealth;
 
     // Start is called before the first frame update
     void Start()
     {
         phases = GetComponent<GamePhases>();
         suppliesManager = GetComponent<SuppliesManager>();
+        castleHealth = GameObject.FindGameObjectWithTag("Player").GetComponent<CastleHealth>();
+        previewMaterial = wallPreview.GetComponent<Renderer>().sharedMaterial;
+
+        wallPrefab.GetComponent<Renderer>().material = startMaterial;
+        towerPrefab.GetComponent<Renderer>().material = startMaterial;
     }
 
     // Update is called once per frame
@@ -57,7 +72,7 @@ public class WallBuilding : MonoBehaviour
         {
             OnLeftMouseButtonDown();
         }
-        else if (Input.GetMouseButtonDown(1))
+        else if (Input.GetKeyDown(KeyCode.Escape))
         {
             OnRightMouseButtonDown();
         }
@@ -81,7 +96,6 @@ public class WallBuilding : MonoBehaviour
         {
             return;
         }
-
         StartBuilding();
     }
 
@@ -141,12 +155,35 @@ public class WallBuilding : MonoBehaviour
         startTowerForward = wallStart.transform.forward;
         Vector3 mousePosition = GetWorldPoint();
 
-        if (mousePosition == Vector3.zero || wallStart.transform.position.y != mousePosition.y)
+        if (mousePosition == Vector3.zero || (wallStart.transform.position.y + 2f < mousePosition.y))
         {
             return;
         }
 
         distance = Vector3.Distance(startTowerPosition, mousePosition);
+
+        if (!suppliesManager.EnoughForWall(distance))
+        {
+            wall.GetComponent<Renderer>().material = forbiddenBuildMaterial;
+            if (!wallStart.CompareTag("Tower"))
+            {
+                wallStart.GetComponent<Renderer>().material = forbiddenBuildMaterial;
+            }
+            wallEnd.GetComponent<Renderer>().material = forbiddenBuildMaterial;
+            canBuild = false;
+            return;
+        }
+        else
+        {
+            wall.GetComponent<Renderer>().material = previewMaterial;
+            if (!wallStart.CompareTag("Tower"))
+            {
+                wallStart.GetComponent<Renderer>().material = previewMaterial;
+            }
+            wallEnd.GetComponent<Renderer>().material = previewMaterial;
+            canBuild = true;
+        }
+
         wallStart.transform.LookAt(mousePosition);
 
         if (distance > maxDistance)
@@ -168,28 +205,34 @@ public class WallBuilding : MonoBehaviour
 
     void EndBuilding()
     {
-        buildingState = false;
-        Transform startPreviewTrans = wallStart.transform;
-        Transform wallPreviewTrans = wall.transform;
-        Transform endPreviewTrans = wallEnd.transform;
-
-        if (!wallStart.CompareTag("Tower"))
+        if (canBuild)
         {
-            Destroy(wallStart);
-            wallStart = Instantiate(towerPrefab, startPreviewTrans.position, Quaternion.identity) as GameObject;
+            buildingState = false;
+            Transform startPreviewTrans = wallStart.transform;
+            Transform wallPreviewTrans = wall.transform;
+            Transform endPreviewTrans = wallEnd.transform;
+
+            if (!wallStart.CompareTag("Tower"))
+            {
+                Destroy(wallStart);
+                wallStart = Instantiate(towerPrefab, startPreviewTrans.position, Quaternion.identity) as GameObject;
+                castleHealth.walls.Add(wallStart);
+            }
+
+            Destroy(wallEnd);
+
+            if (!IfTowerHit(ref wallEnd))
+            {
+                wallEnd = Instantiate(towerPrefab, endPreviewTrans.position, Quaternion.identity) as GameObject;
+                castleHealth.walls.Add(wallEnd);
+            }
+            Destroy(wall);
+            wall = Instantiate(wallPrefab, wallPreviewTrans.position, wallPreviewTrans.rotation) as GameObject;
+            wall.GetComponent<WallHealth>().SetHealthAndMaxHealth(distance);
+            castleHealth.walls.Add(wall);
+            wall.transform.localScale = wallPreviewTrans.localScale;
+            suppliesManager.WallBuilt(distance);
         }
-
-        Destroy(wallEnd);
-
-        if (!IfTowerHit(ref wallEnd))
-        {
-            wallEnd = Instantiate(towerPrefab, endPreviewTrans.position, Quaternion.identity) as GameObject;
-        }
-
-        Destroy(wall);
-        wall = Instantiate(wallPrefab, wallPreviewTrans.position, wallPreviewTrans.rotation) as GameObject;
-        wall.transform.localScale = wallPreviewTrans.localScale;
-        suppliesManager.WallBuilt(distance);
     }
 
     Vector3 GetWorldPoint()

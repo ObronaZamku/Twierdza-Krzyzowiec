@@ -7,8 +7,8 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "AI", menuName = "AI")]
 public class AIStats : ScriptableObject
 {
-    public float health;
-    public float attack;
+    public int health;
+    public int attack;
 
     public float gold;
     public float stone;

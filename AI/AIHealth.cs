@@ -8,9 +8,15 @@ public class AIHealth : MonoBehaviour
     public AIStats stats;
 
     public float currentHP;
+
+    [SerializeField]
+    private GameObject gameManager;
+
+    private SuppliesManager suppliesManager;
     void Start()
     {
         currentHP = stats.health;
+        suppliesManager = gameManager.GetComponent<SuppliesManager>();
     }
 
     // Update is called once per frame
@@ -23,12 +29,12 @@ public class AIHealth : MonoBehaviour
     {
         if (other.CompareTag("Arrow"))
         {
-            currentHP -= 10;
+            currentHP -= 40;
             Destroy(other.gameObject);
         }
         else if (other.CompareTag("Bullet"))
         {
-            currentHP -= 40;
+            currentHP -= 200;
             Destroy(other.gameObject);
         }
         else if (other.CompareTag("Oil"))
@@ -43,6 +49,7 @@ public class AIHealth : MonoBehaviour
         if (currentHP <= 0)
         {
             Destroy(gameObject);
+            suppliesManager.GetReward(stats);
         }
     }
 

@@ -20,6 +20,9 @@ public class SuppliesManager : MonoBehaviour
     [SerializeField]
     private Costs cannonCosts;
 
+    [SerializeField]
+    private Costs upgradeCosts;
+
     [Header("Images")]
     [SerializeField]
     private RawImage goldImage;
@@ -46,6 +49,7 @@ public class SuppliesManager : MonoBehaviour
         goldText = goldImage.GetComponentInChildren<Text>();
         woodText = woodImage.GetComponentInChildren<Text>();
         stoneText = stoneImage.GetComponentInChildren<Text>();
+        upgradeCosts.gold = 2600;
     }
 
     // Update is called once per frame
@@ -68,6 +72,15 @@ public class SuppliesManager : MonoBehaviour
         supplies.wood = supplies.wood + (simulateRatio * Time.fixedDeltaTime);
     }
 
+    public void ConstructionRepaired(int cost)
+    {
+        if (cost < supplies.wood && cost < supplies.stone)
+        {
+            supplies.wood = supplies.wood - cost / 8;
+            supplies.stone = supplies.stone - cost / 8;
+        }
+    }
+
     public void WallBuilt(float distance)
     {
         supplies.gold = supplies.gold - (distance * wallCosts.gold);
@@ -75,7 +88,7 @@ public class SuppliesManager : MonoBehaviour
         supplies.wood = supplies.wood - (distance * wallCosts.wood);
     }
 
-    public void ObjectPlaced(string tag)
+    public void PerformTransaction(string tag)
     {
         switch (tag)
         {
@@ -94,9 +107,33 @@ public class SuppliesManager : MonoBehaviour
                 supplies.stone = supplies.stone - cannonCosts.stone;
                 supplies.wood = supplies.wood - cannonCosts.wood;
                 break;
+            case "Upgrade":
+                supplies.gold = supplies.gold - upgradeCosts.gold;
+                supplies.stone = supplies.stone - upgradeCosts.stone;
+                supplies.wood = supplies.wood - upgradeCosts.wood;
+                break;
             default:
                 break;
         }
+    }
+
+    public void GetReward(AIStats stats)
+    {
+        supplies.gold = supplies.gold + stats.gold;
+        supplies.stone = supplies.stone + stats.stone;
+        supplies.wood = supplies.wood + stats.wood;
+    }
+
+    public void PhaseReward(int phaseCount)
+    {
+        supplies.gold = supplies.gold + 600 * phaseCount;
+        supplies.stone = supplies.stone + 600 * phaseCount;
+        supplies.wood = supplies.wood + 600 * phaseCount;
+    }
+
+    public bool EnoughForWall(float distance)
+    {
+        return ((distance * wallCosts.stone < supplies.stone) && (distance * wallCosts.wood < supplies.wood));
     }
 
     public bool CanBuild(string tag)
@@ -111,6 +148,8 @@ public class SuppliesManager : MonoBehaviour
                 return supplies.IsEnough(bowmanCosts);
             case "Cannon":
                 return supplies.IsEnough(cannonCosts);
+            case "Upgrade":
+                return supplies.IsEnough(upgradeCosts);
             default:
                 return false;
         }

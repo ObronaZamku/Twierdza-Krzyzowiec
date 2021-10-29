@@ -71,10 +71,17 @@ public class ShootingUnits : MonoBehaviour
                 if (timer > reload)
                 {
                     MonoBehaviour chosenShootableGameObject = chosenShootable as MonoBehaviour;
-                    Vector3 shootingUnitPosition = chosenShootableGameObject.transform.position;
-                    targetPosition = GetWorldPositon();
+                    if (chosenShootableGameObject != null)
+                    {
+                        Vector3 shootingUnitPosition = chosenShootableGameObject.transform.position;
+                        targetPosition = GetWorldPositon();
 
-                    Shoot(targetPosition, shootingUnitPosition, chosenShootable.GetAmmunition());
+                        Shoot(targetPosition, shootingUnitPosition, chosenShootable.GetAmmunition());
+                    }
+                    else
+                    {
+                        chosenShootable = null;
+                    }
                     timer = 0;
                 }
             }
@@ -173,12 +180,15 @@ public class ShootingUnits : MonoBehaviour
         Vector3 shootingUnitPosition = shootingUnit.transform.position;
         foreach (GameObject enemy in enemies)
         {
-            Vector3 enemyPosition = enemy.transform.position;
-            float distance = Vector3.Distance(shootingUnitPosition, enemyPosition);
-            if (distance < shootableUnit.GetRange())
+            if (enemy != null)
             {
-                Shoot(enemyPosition, shootingUnitPosition, shootableUnit.GetAmmunition());
-                return;
+                Vector3 enemyPosition = enemy.transform.position;
+                float distance = Vector3.Distance(shootingUnitPosition, enemyPosition);
+                if (distance < shootableUnit.GetRange())
+                {
+                    Shoot(enemyPosition, shootingUnitPosition, shootableUnit.GetAmmunition());
+                    return;
+                }
             }
         }
     }

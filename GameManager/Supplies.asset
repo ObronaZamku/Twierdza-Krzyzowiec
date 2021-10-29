@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd724d69dc177154daf008dc1c40fc67, type: 3}
   m_Name: Supplies
   m_EditorClassIdentifier: 
-  gold: 243.74496
-  wood: 243.74496
-  stone: 243.74496
+  gold: 9012.836
+  wood: 462.71948
+  stone: 412.71948

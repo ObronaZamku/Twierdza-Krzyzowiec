@@ -4,10 +4,11 @@ using UnityEngine;
 
 public class Savable : MonoBehaviour
 {
-    
+
 }
 
 public class SavableWithHealth : Savable
 {
-    public float health;
+    public int health;
+    public int maxHealth;
 }

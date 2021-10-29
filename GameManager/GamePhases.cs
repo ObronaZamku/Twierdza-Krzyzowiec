@@ -33,12 +33,15 @@ public class GamePhases : MonoBehaviour
 
     private bool ongoingSiege = false;
 
+    private SuppliesManager suppliesManager;
+
     // Start is called before the first frame update
     void Start()
     {
         EnemySpawn[] es = GetComponentsInChildren<EnemySpawn>();
         enemySpawners = new List<EnemySpawn>(es);
         buttonManager = GetComponent<ButtonManager>();
+        suppliesManager = GetComponent<SuppliesManager>();
     }
 
     // Update is called once per frame
@@ -68,6 +71,8 @@ public class GamePhases : MonoBehaviour
                     ongoingSiege = false;
                     spawns = 0;
                     phaseCount++;
+                    suppliesManager.PhaseReward(phaseCount);
+                    ButtonManager.ResetCursor();
                 }
             }
         }
@@ -114,7 +119,7 @@ public class GamePhases : MonoBehaviour
     private Dictionary<string, int> SpawnPrepare()
     {
         Dictionary<string, int> spawnMap = new Dictionary<string, int>();
-        spawnMap.Add("trooper", phaseCount * phaseCount + 1);
+        spawnMap.Add("trooper", phaseCount * phaseCount + 2);
         spawnMap.Add("wizard", 2 * phaseCount + 1);
         spawnMap.Add("troll", phaseCount - 1);
         return spawnMap;

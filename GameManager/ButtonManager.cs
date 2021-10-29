@@ -28,9 +28,6 @@ public class ButtonManager : MonoBehaviour
     [SerializeField]
     private Button starButton;
 
-    [SerializeField]
-    private Text wallHPText;
-
     [HideInInspector]
     public static Modes currentMode;
 
@@ -38,6 +35,10 @@ public class ButtonManager : MonoBehaviour
     private Texture2D cursorTexture;
 
     private SuppliesManager suppliesManager;
+
+    private GamePhases phases;
+
+    private bool maxUpgradeState = false;
 
     void Start()
     {
@@ -49,11 +50,16 @@ public class ButtonManager : MonoBehaviour
         endBuildingButton.onClick.AddListener(OnClickEndBuilding);
         starButton.onClick.AddListener(OnClickStar);
         suppliesManager = GetComponent<SuppliesManager>();
+        phases = GetComponent<GamePhases>();
     }
 
     void Update()
     {
         CheckButtons();
+        if (currentMode != Modes.REPAIR && phases.isBuildingPhase)
+        {
+            ResetCursor();
+        }
     }
     public void OnClickRepair()
     {
@@ -102,6 +108,7 @@ public class ButtonManager : MonoBehaviour
             cannonButton.interactable = false;
             bowmanButton.interactable = false;
             barrelButton.interactable = false;
+            starButton.interactable = false;
         }
     }
 
@@ -113,6 +120,7 @@ public class ButtonManager : MonoBehaviour
         cannonButton.interactable = true;
         bowmanButton.interactable = true;
         barrelButton.interactable = true;
+        starButton.interactable = true;
     }
 
     private void CheckButtons()
@@ -151,7 +159,26 @@ public class ButtonManager : MonoBehaviour
             {
                 cannonButton.interactable = true;
             }
+            if (!suppliesManager.CanBuild("Upgrade") || maxUpgradeState)
+            {
+                starButton.interactable = false;
+            }
+            else
+            {
+                starButton.interactable = true;
+            }
         }
+    }
+
+    public void DisableStarButton()
+    {
+        starButton.interactable = false;
+        maxUpgradeState = true;
+    }
+
+    public static void ResetCursor()
+    {
+        Cursor.SetCursor(null, Vector2.zero, CursorMode.Auto);
     }
 
 }

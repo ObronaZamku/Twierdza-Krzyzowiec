@@ -20,22 +20,21 @@ public class Save
             .Where(obj => obj.transform.parent == null || obj.transform.parent.GetComponent<Savable>() == null)
             .OfType<Savable>()
             .ToList();
-        
+
         foreach (Savable s in li)
             save.saveObjects.Add(toParentObject(s));
 
-        return save; 
+        return save;
     }
 
     private static Save.SaveObjectWithChildren toParentObject(Savable savable)
     {
         Save.SaveObjectWithChildren saveObject = new SaveObjectWithChildren();
         MonoBehaviour mb = savable as MonoBehaviour;
-        
-        if(mb != null)
+
+        if (mb != null)
         {
             List<Savable> children1 = Save.SaveObjectWithChildren.GetSavableChildren(mb.transform);
-            children1.ForEach(s => Debug.Log(s));
             List<Save.SaveObject> children = children1.ConvertAll(new Converter<Savable, Save.SaveObject>(toSaveObject));
             saveObject.children = children;
             saveObject.position = mb.transform.position;
@@ -49,19 +48,19 @@ public class Save
                 saveObject.type = name;
         }
         SavableWithHealth swh = savable as SavableWithHealth;
-        if(swh != null)
+        if (swh != null)
         {
             saveObject.health = swh.health;
+            saveObject.maxHealth = swh.maxHealth;
         }
         return saveObject;
     }
 
     private static Save.SaveObject toSaveObject(Savable savable)
     {
-        Debug.Log(savable);
         Save.SaveObject saveObject = new SaveObject();
         MonoBehaviour mb = savable as MonoBehaviour;
-        if(mb != null)
+        if (mb != null)
         {
             saveObject.position = mb.transform.position;
             saveObject.scale = mb.transform.localScale;
@@ -74,9 +73,10 @@ public class Save
                 saveObject.type = name;
         }
         SavableWithHealth swh = savable as SavableWithHealth;
-        if(swh != null)
+        if (swh != null)
         {
             saveObject.health = swh.health;
+            saveObject.maxHealth = swh.maxHealth;
         }
         return saveObject;
     }
@@ -88,20 +88,22 @@ public class Save
         public Vector3 scale;
         public Quaternion rotation;
         public string type;
-        public float health;
+        public int health;
+        public int maxHealth;
     }
-    
+
     [System.Serializable]
-    public class SaveObjectWithChildren : SaveObject {
+    public class SaveObjectWithChildren : SaveObject
+    {
         public List<SaveObject> children = new List<SaveObject>();
 
-        public static List<Savable> GetSavableChildren(Transform transform){
+        public static List<Savable> GetSavableChildren(Transform transform)
+        {
             List<Savable> children = new List<Savable>();
-            foreach(Transform child in transform){
-                Debug.Log(child.gameObject.GetComponent<Savable>());
+            foreach (Transform child in transform)
+            {
                 children.Add(child.gameObject.GetComponent<Savable>());
             }
-            children.ForEach(s => Debug.Log(s));
             return children.OfType<Savable>().ToList();
         }
     }
