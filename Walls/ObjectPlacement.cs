@@ -34,19 +34,19 @@ public class ObjectPlacement : MonoBehaviour
             if (Input.GetMouseButtonDown(0) && ButtonManager.currentMode == Modes.CANNON)
             {
                 instantiateTroop(cannon);
-                suppliesManager.ObjectPlaced(cannon.tag);
+                suppliesManager.PerformTransaction(cannon.tag);
                 ButtonManager.currentMode = Modes.DEFAULT;
             }
             else if (Input.GetMouseButtonDown(0) && ButtonManager.currentMode == Modes.BOWMAN)
             {
                 instantiateTroop(bowman);
-                suppliesManager.ObjectPlaced(bowman.tag);
+                suppliesManager.PerformTransaction(bowman.tag);
                 ButtonManager.currentMode = Modes.DEFAULT;
             }
             else if (Input.GetMouseButtonDown(0) && ButtonManager.currentMode == Modes.BARREL)
             {
                 instantiateTroop(barrel);
-                suppliesManager.ObjectPlaced(barrel.tag);
+                suppliesManager.PerformTransaction(barrel.tag);
                 ButtonManager.currentMode = Modes.DEFAULT;
             }
         }
